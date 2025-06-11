@@ -2,7 +2,6 @@
 
 An advanced physical therapy platform that uses smart movement analysis and pose estimation to help patients recover through guided exercises and real-time feedback.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/rahmivinnns-projects/v0-recreate-figma-design)
 [![Built with Next.js](https://img.shields.io/badge/Built%20with-Next.js-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![Powered by Supabase](https://img.shields.io/badge/Powered%20by-Supabase-green?style=for-the-badge&logo=supabase)](https://supabase.com/)
 
@@ -107,7 +106,6 @@ This project is licensed under the MIT License - see the [LICENSE](./LICENSE) fi
 
 ## 🙏 Acknowledgements
 
-- Built on top of the initial design from [v0.dev](https://v0.dev)
 - Pose detection powered by [MediaPipe](https://mediapipe.dev/) and [TensorFlow.js](https://www.tensorflow.org/js)
 - Video calls powered by [LiveKit](https://livekit.io/)
 - Backend and authentication powered by [Supabase](https://supabase.com/)
