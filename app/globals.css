@@ -1,0 +1,304 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-black;
+  }
+  p, h1, h2, h3, h4, h5, h6, span, div, a, input, textarea, select, label {
+    @apply text-black !important;
+  }
+  
+  /* Button styling */
+  button {
+    @apply text-black !important;
+  }
+  
+  /* Dark buttons get white text */
+  button.bg-black,
+  button.bg-gray-900,
+  button.bg-slate-900,
+  button.bg-zinc-900,
+  button.bg-neutral-900,
+  button.bg-stone-900,
+  button[class*="bg-blue-9"],
+  button[class*="bg-indigo-9"],
+  button[class*="bg-purple-9"],
+  button[class*="bg-pink-9"],
+  button[class*="bg-red-9"],
+  button[class*="bg-orange-9"],
+  button[class*="bg-amber-9"],
+  button[class*="bg-yellow-9"],
+  button[class*="bg-lime-9"],
+  button[class*="bg-green-9"],
+  button[class*="bg-emerald-9"],
+  button[class*="bg-teal-9"],
+  button[class*="bg-cyan-9"],
+  button[class*="bg-sky-9"],
+  .bg-primary button,
+  .bg-secondary button {
+    color: white !important;
+  }
+  
+  /* Ensure all text elements are black by default */
+  .text-white {
+    color: black !important;
+  }
+  
+  /* Exception for dark backgrounds */
+  .bg-black .text-white,
+  .bg-gray-900 .text-white,
+  .bg-slate-900 .text-white,
+  .bg-zinc-900 .text-white,
+  .bg-neutral-900 .text-white,
+  .bg-stone-900 .text-white,
+  .bg-primary .text-white,
+  .bg-secondary .text-white {
+    color: white !important;
+  }
+}
+
+/* Page Transitions */
+.page-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 300ms, transform 300ms;
+}
+
+/* Video Call Styles */
+.remote-connected {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(1, 69, 133, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(1, 69, 133, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(1, 69, 133, 0);
+  }
+}
+
+/* Button Hover Effects */
+.btn-hover-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-hover-effect::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.btn-hover-effect:hover::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(20, 20);
+    opacity: 0;
+  }
+}
+
+/* Loading Animations */
+.loading-spinner {
+  display: inline-block;
+  width: 50px;
+  height: 50px;
+  border: 3px solid rgba(1, 69, 133, 0.3);
+  border-radius: 50%;
+  border-top-color: #014585;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Notification Badge Animation */
+@keyframes notification-pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 82, 82, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(255, 82, 82, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 82, 82, 0);
+  }
+}
+
+.notification-badge {
+  animation: notification-pulse 2s infinite;
+}
+
+/* Add the loading bar animation */
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 1.5s infinite;
+}
+
+/* Subtle pulse animation for logo */
+@keyframes pulse-subtle {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* Force text to be black */
+p, h1, h2, h3, h4, h5, h6, span, div, a, button, input, textarea, select, label, li {
+  color: black !important;
+}
+
+/* Exception for white text in specific components */
+.bg-gradient-to-br p,
+.bg-gradient-to-br h1,
+.bg-gradient-to-br h2,
+.bg-gradient-to-br h3,
+.bg-gradient-to-br h4,
+.bg-gradient-to-br h5,
+.bg-gradient-to-br h6,
+.bg-gradient-to-br span,
+.bg-gradient-to-br div,
+.bg-gradient-to-br a,
+.bg-gradient-to-br button,
+.bg-gradient-to-b p,
+.bg-gradient-to-b h1,
+.bg-gradient-to-b h2,
+.bg-gradient-to-b h3,
+.bg-gradient-to-b h4,
+.bg-gradient-to-b h5,
+.bg-gradient-to-b h6,
+.bg-gradient-to-b span,
+.bg-gradient-to-b div,
+.bg-gradient-to-b a,
+.bg-gradient-to-b button,
+.text-white {
+  color: white !important;
+}
