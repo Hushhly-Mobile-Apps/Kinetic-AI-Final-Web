@@ -1,160 +1,355 @@
 "use client"
 
-import React, { useRef, useEffect, useState } from 'react';
-import * as tf from '@tensorflow/tfjs';
-import * as poseDetection from '@tensorflow-models/pose-detection';
-import '@tensorflow/tfjs-backend-webgl';
-import { useAuthApi } from '@/hooks/use-auth-api';
+import React, { useState, useRef, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Progress } from "@/components/ui/progress"
+import { useCustomToast } from "@/components/ui/custom-toast"
+import { Camera, Play, Download, Activity, AlertTriangle, CheckCircle } from "lucide-react"
+import { VideoPlayerModal } from "./video-player-modal"
 
-type PoseEstimationProps = {
-  onPoseDetected: (pose: any) => void;
-  onAnalysisReceived?: (analysis: any) => void;
-  sessionId?: string;
-  width?: number;
-  height?: number;
-  enableBackendAnalysis?: boolean;
-};
+interface PoseAnalysisResult {
+  model: string
+  camera: string
+  pose_symmetry: string
+  risk_level: string
+  keypoints_detected: string[]
+  analysis_time: string
+}
 
-export const PoseEstimation: React.FC<PoseEstimationProps> = ({
-  onPoseDetected,
-  onAnalysisReceived,
-  sessionId,
-  width = 640,
-  height = 480,
-  enableBackendAnalysis = false,
-}) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animationRef = useRef<number>();
-  const detectorRef = useRef<poseDetection.PoseDetector>();
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const { analyzePoseData } = useAuthApi();
-  const lastAnalysisTime = useRef<number>(0);
+export function PoseEstimation() {
+  const [selectedModel, setSelectedModel] = useState("MediaPipe")
+  const [cameraActive, setCameraActive] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState<PoseAnalysisResult | null>(null)
+  const [uploadProgress, setUploadProgress] = useState(0)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const streamRef = useRef<MediaStream | null>(null)
+  const { showToast } = useCustomToast()
 
+  // Load selected model from localStorage
   useEffect(() => {
-    async function setupDetector() {
-      await tf.ready();
-      await tf.setBackend('webgl');
-      
-      const model = poseDetection.SupportedModels.MoveNet;
-      const detector = await poseDetection.createDetector(model, {
-        modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
-      });
-      
-      detectorRef.current = detector;
-      
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-        });
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
-          detectPose();
-        }
-      }
+    const savedModel = localStorage.getItem("poseModel")
+    if (savedModel) {
+      setSelectedModel(savedModel)
     }
-    
-    setupDetector();
-    
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      
-      if (detectorRef.current) {
-        detectorRef.current.dispose();
-      }
-    };
-  }, []);
+  }, [])
 
-  async function detectPose() {
-    if (!videoRef.current || !detectorRef.current || !canvasRef.current) return;
-    
-    const poses = await detectorRef.current.estimatePoses(videoRef.current);
-    
-    if (poses.length > 0) {
-      const pose = poses[0];
-      onPoseDetected(pose);
-      
-      const ctx = canvasRef.current.getContext('2d');
-      if (ctx) {
-        ctx.clearRect(0, 0, width, height);
-        drawPose(pose, ctx);
-      }
-      
-      // Send pose data to backend for analysis (throttled to avoid overwhelming the server)
-      if (enableBackendAnalysis && !isAnalyzing) {
-        const now = Date.now();
-        if (now - lastAnalysisTime.current > 2000) { // Analyze every 2 seconds
-          lastAnalysisTime.current = now;
-          analyzePoseInBackground(pose);
-        }
-      }
-    }
-    
-    animationRef.current = requestAnimationFrame(detectPose);
-  }
-  
-  async function analyzePoseInBackground(pose: any) {
-    if (isAnalyzing) return;
-    
-    setIsAnalyzing(true);
+  // Save selected model to localStorage
+  useEffect(() => {
+    localStorage.setItem("poseModel", selectedModel)
+  }, [selectedModel])
+
+  const startCamera = async () => {
     try {
-      // Convert video frame to base64 for analysis
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      if (ctx && videoRef.current) {
-        canvas.width = videoRef.current.videoWidth;
-        canvas.height = videoRef.current.videoHeight;
-        ctx.drawImage(videoRef.current, 0, 0);
-        const videoFrame = canvas.toDataURL('image/jpeg', 0.8);
-        
-        const analysis = await analyzePoseData(pose, videoFrame, sessionId);
-        if (onAnalysisReceived && analysis.success) {
-          onAnalysisReceived(analysis);
-        }
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          width: 640, 
+          height: 480,
+          facingMode: "user"
+        } 
+      })
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream
+        streamRef.current = stream
+        setCameraActive(true)
+        showToast("Camera activated successfully", "success")
       }
     } catch (error) {
-      console.error('Pose analysis failed:', error);
-    } finally {
-      setIsAnalyzing(false);
+      console.error("Camera access error:", error)
+      showToast("Camera access denied. Please allow webcam.", "error")
     }
   }
 
-  function drawPose(pose: any, ctx: CanvasRenderingContext2D) {
-    if (!pose.keypoints) return;
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setCameraActive(false)
+    showToast("Camera stopped", "info")
+  }
+
+  const simulateUpload = () => {
+    setIsUploading(true)
+    setUploadProgress(0)
     
-    pose.keypoints.forEach((keypoint: any) => {
-      if (keypoint.score > 0.3) {
-        ctx.beginPath();
-        ctx.arc(keypoint.x, keypoint.y, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = 'red';
-        ctx.fill();
-      }
-    });
+    const interval = setInterval(() => {
+      setUploadProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval)
+          setIsUploading(false)
+          showToast("Video uploaded successfully", "success")
+          return 100
+        }
+        return prev + 10
+      })
+    }, 200)
+  }
+
+  const runAnalysis = async () => {
+    if (!cameraActive) {
+      showToast("Please activate your camera first", "error")
+      return
+    }
+
+    setIsAnalyzing(true)
+    showToast("Starting pose analysis...", "loading")
+
+    // Simulate analysis delay
+    await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 1000))
+
+    // Generate fake analysis result
+    const symmetry = Math.floor(80 + Math.random() * 15) // 80-95%
+    const riskLevel = symmetry > 90 ? "Low" : symmetry > 85 ? "Moderate" : "High"
+    const keypoints = ["Left Shoulder", "Right Shoulder", "Left Elbow", "Right Elbow", "Left Knee", "Right Knee"]
+    const analysisTime = (3 + Math.random() * 2).toFixed(1)
+
+    const result: PoseAnalysisResult = {
+      model: selectedModel,
+      camera: "ON",
+      pose_symmetry: `${symmetry}%`,
+      risk_level: riskLevel,
+      keypoints_detected: keypoints,
+      analysis_time: `${analysisTime}s`
+    }
+
+    setAnalysisResult(result)
+    setIsAnalyzing(false)
+    showToast(`Analysis completed using ${selectedModel}`, "success")
+  }
+
+  const downloadReport = () => {
+    if (!analysisResult) return
+
+    const reportData = {
+      timestamp: new Date().toISOString(),
+      patient: "Ayu Pranata",
+      session: "Shoulder Mobility Test – 3 July 2025",
+      ...analysisResult
+    }
+
+    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `AI_Posture_Review_Ayu_Pranata_July2025.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    showToast("Report downloaded successfully", "success")
+  }
+
+  const playVideo = () => {
+    setIsVideoModalOpen(true)
+    showToast("Opening video player...", "info")
   }
 
   return (
-    <div className="relative w-full">
-      <video
-        ref={videoRef}
-        width={width}
-        height={height}
-        className="hidden"
-      />
-      <canvas
-        ref={canvasRef}
-        width={width}
-        height={height}
-        className="bg-black rounded-lg shadow-lg w-full h-auto max-w-full max-h-[80vh] object-contain mx-auto"
-      />
-      {isAnalyzing && (
-        <div className="absolute top-2 right-2 bg-blue-500 text-white px-2 py-1 rounded-md text-xs font-medium animate-pulse">
-          Analyzing...
-        </div>
+    <div className="space-y-6">
+      {/* Model Selection */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="h-5 w-5" />
+            Choose Pose Estimation Model
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedModel} onValueChange={setSelectedModel}>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select model" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="MediaPipe">MediaPipe (v0.9)</SelectItem>
+              <SelectItem value="OpenPose">OpenPose (v1.7)</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-sm text-gray-500 mt-2">
+            {selectedModel === "MediaPipe" 
+              ? "Real-time pose detection optimized for mobile devices"
+              : "High-accuracy pose estimation for detailed analysis"
+            }
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Camera Control */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Camera className="h-5 w-5" />
+            Camera Access
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <Button 
+              onClick={cameraActive ? stopCamera : startCamera}
+              variant={cameraActive ? "destructive" : "default"}
+              className="flex-1"
+            >
+              {cameraActive ? "Stop Camera" : "Start Camera"}
+            </Button>
+            <Button 
+              onClick={simulateUpload}
+              disabled={isUploading}
+              variant="outline"
+              className="flex-1"
+            >
+              {isUploading ? "Uploading..." : "Upload Video"}
+            </Button>
+          </div>
+
+          {isUploading && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Uploading physiotherapy session...</span>
+                <span>{uploadProgress}%</span>
+              </div>
+              <Progress value={uploadProgress} className="w-full" />
+            </div>
+          )}
+
+          {cameraActive && (
+            <div className="relative">
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full rounded-lg border"
+                style={{ maxHeight: "300px" }}
+              />
+              {isAnalyzing && (
+                <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
+                  <div className="text-center text-white">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                    <p>Analyzing posture...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Analysis Controls */}
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Analysis Controls</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-2">
+            <Button 
+              onClick={runAnalysis}
+              disabled={!cameraActive || isAnalyzing}
+              className="flex-1 bg-blue-600 hover:bg-blue-700"
+            >
+              {isAnalyzing ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Running Analysis...
+                </>
+              ) : (
+                <>
+                  <Activity className="h-4 w-4 mr-2" />
+                  Run AI Analysis
+                </>
+              )}
+            </Button>
+            <Button 
+              onClick={playVideo}
+              variant="outline"
+              className="flex-1"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Video Session Review
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="font-medium">Upload your physiotherapy session to receive a full AI-generated posture and gait analysis.</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="font-medium">Download movement breakdown reports for each patient session.</p>
+            </div>
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="font-medium">Run AI-powered muscle symmetry and joint tracking in seconds.</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Analysis Results */}
+      {analysisResult && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              AI Diagnostic Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <p className="text-2xl font-bold text-blue-600">{analysisResult.pose_symmetry}</p>
+                <p className="text-sm text-gray-600">Pose Symmetry</p>
+              </div>
+              <div className="text-center p-3 bg-orange-50 rounded-lg">
+                <p className="text-2xl font-bold text-orange-600">{analysisResult.risk_level}</p>
+                <p className="text-sm text-gray-600">Risk Level</p>
+              </div>
+              <div className="text-center p-3 bg-green-50 rounded-lg">
+                <p className="text-2xl font-bold text-green-600">{analysisResult.keypoints_detected.length}</p>
+                <p className="text-sm text-gray-600">Keypoints Detected</p>
+              </div>
+              <div className="text-center p-3 bg-purple-50 rounded-lg">
+                <p className="text-2xl font-bold text-purple-600">{analysisResult.analysis_time}</p>
+                <p className="text-sm text-gray-600">Analysis Time</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <p className="font-medium">Model Used: {analysisResult.model}</p>
+              <p className="font-medium">Keypoints Detected:</p>
+              <div className="flex flex-wrap gap-2">
+                {analysisResult.keypoints_detected.map((keypoint, index) => (
+                  <span key={index} className="px-2 py-1 bg-gray-100 rounded text-sm">
+                    {keypoint}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <Button 
+              onClick={downloadReport}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export Movement Report
+            </Button>
+          </CardContent>
+        </Card>
       )}
+
+      {/* Video Player Modal */}
+      <VideoPlayerModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        title="Shoulder Mobility Test - Ayu Pranata"
+        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ"
+      />
     </div>
-  );
-};
+  )
+} 

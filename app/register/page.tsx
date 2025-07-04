@@ -122,8 +122,8 @@ export default function Register() {
             <div className="flex justify-center w-full">
               <Image src="/kinetic-logo.png" alt="Kinetic" width={80} height={80} />
             </div>
-            <h1 className="text-2xl font-bold text-black">Create your account</h1>
-            <p className="text-sm text-black">Sign up to start your recovery journey</p>
+            <h1 className="text-2xl font-bold">Create your account</h1>
+            <p className="text-sm text-gray-500">Sign up to start your recovery journey</p>
           </div>
           <Tabs defaultValue="patient" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
@@ -188,13 +188,13 @@ export default function Register() {
                     onChange={(e) => setPatientTerms(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300" 
                   />
-                  <Label htmlFor="patient-terms" className="text-sm text-black">
+                  <Label htmlFor="patient-terms" className="text-sm">
                     I agree to the{" "}
-                    <Link href="/terms" className="text-black hover:underline">
+                    <Link href="/terms" className="text-blue-600 hover:underline">
                       Terms of Service
                     </Link>{" "}
                     and{" "}
-                    <Link href="/privacy" className="text-black hover:underline">
+                    <Link href="/privacy" className="text-blue-600 hover:underline">
                       Privacy Policy
                     </Link>
                   </Label>
@@ -276,13 +276,13 @@ export default function Register() {
                     onChange={(e) => setProviderTerms(e.target.checked)}
                     className="h-4 w-4 rounded border-gray-300" 
                   />
-                  <Label htmlFor="provider-terms" className="text-sm text-black">
+                  <Label htmlFor="provider-terms" className="text-sm">
                     I agree to the{" "}
-                    <Link href="/terms" className="text-black hover:underline">
+                    <Link href="/terms" className="text-blue-600 hover:underline">
                       Terms of Service
                     </Link>{" "}
                     and{" "}
-                    <Link href="/privacy" className="text-black hover:underline">
+                    <Link href="/privacy" className="text-blue-600 hover:underline">
                       Privacy Policy
                     </Link>
                   </Label>
@@ -301,7 +301,7 @@ export default function Register() {
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
-            <span className="relative bg-white px-2 text-xs text-black">Or sign up with</span>
+            <span className="relative bg-white px-2 text-xs text-gray-500">Or sign up with</span>
           </div>
           <div className="grid grid-cols-2 gap-4">
             <Button variant="outline" className="w-full">
@@ -340,9 +340,9 @@ export default function Register() {
               Apple
             </Button>
           </div>
-          <div className="text-center text-sm text-black">
+          <div className="text-center text-sm">
             Already have an account?{" "}
-            <Link href="/login" className="text-black hover:underline">
+            <Link href="/login" className="text-blue-600 hover:underline">
               Sign In
             </Link>
           </div>

@@ -30,16 +30,16 @@ export default function PatientLoginPage() {
   const [registerSuccess, setRegisterSuccess] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
 
-  const { user, login, register, isLoading: authLoading } = useAuth()
+  const { user, login, logout, isLoading: authLoading } = useAuth()
   const router = useRouter()
 
   // Check if user is already logged in
   useEffect(() => {
     if (user && !authLoading) {
-      // Don't auto-redirect, let user manually navigate
       console.log("User logged in:", user)
+      // Middleware will handle the redirect based on user role
     }
-  }, [user, authLoading, router])
+  }, [user, authLoading])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,24 +47,16 @@ export default function PatientLoginPage() {
     setIsLoading(true)
 
     try {
-      const { success, error } = await login(email, password)
-
-      if (success) {
-        // Get the logged in user from localStorage since state might not be updated yet
-        const loggedInUser = JSON.parse(localStorage.getItem("kineticUser") || "{}")
-        
-        if (loggedInUser.role === "patient") {
-          // Auto-redirect to dashboard after successful login
-          router.push("/dashboard")
-        } else {
-          setError("This login is for patients only. Please use the provider login.")
-        }
+      const result = await login(email, password, 'patient')
+      if (result.success) {
+        // Login successful - middleware will handle redirect
+        console.log("Patient login successful")
       } else {
-        setError(error || "Login failed. Please check your credentials and try again.")
+        setError(result.error || "Login failed. Please check your credentials and try again.")
       }
     } catch (err) {
-      setError("An error occurred. Please try again.")
-      console.error(err)
+      setError("An unexpected error occurred. Please try again.")
+      console.error("Login error:", err)
     } finally {
       setIsLoading(false)
     }
@@ -80,36 +72,33 @@ export default function PatientLoginPage() {
       // Validate form
       if (!firstName || !lastName || !registerEmail || !registerPassword) {
         setRegisterError("All fields are required");
-        setIsRegistering(false);
         return;
       }
 
       if (registerPassword.length < 8) {
         setRegisterError("Password must be at least 8 characters");
-        setIsRegistering(false);
         return;
       }
 
-      // Use Auth provider to register the user
-      const fullName = `${firstName} ${lastName}`;
-      const { success, error } = await register(registerEmail, registerPassword, fullName, "patient");
+      // For demo purposes, we'll simulate a successful registration
+      console.log("Registering user:", { firstName, lastName, registerEmail });
 
-      if (success) {
-        // Show success message and reset form
-        setRegisterSuccess(true);
-        setFirstName("");
-        setLastName("");
-        setRegisterEmail("");
-        setRegisterPassword("");
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // Automatically switch to login tab after successful registration
-        setTimeout(() => {
-          document.getElementById("login-tab")?.click();
-          setEmail(registerEmail);
-        }, 1500);
-      } else {
-        setRegisterError(error || "Registration failed. Please try again.");
-      }
+      // Show success message and reset form
+      setRegisterSuccess(true);
+      setFirstName("");
+      setLastName("");
+      setRegisterEmail("");
+      setRegisterPassword("");
+
+      // Automatically switch to login tab after successful registration
+      setTimeout(() => {
+        document.getElementById("login-tab")?.click();
+        setEmail(registerEmail);
+      }, 1500);
+
     } catch (err) {
       setRegisterError("An error occurred during registration. Please try again.");
       console.error(err);
@@ -119,45 +108,25 @@ export default function PatientLoginPage() {
   };
 
   // For demo purposes, let's add a quick login function
-  const handleQuickLogin = async (userType: string) => {
-    let loginEmail = "";
-    let loginPassword = "";
-
-    if (userType === "patient") {
-      loginEmail = "sarah@example.com";
-      loginPassword = "password123";
-    } else if (userType === "provider") {
-      loginEmail = "johnson@clinic.com";
-      loginPassword = "doctor123";
-    }
-
-    setEmail(loginEmail);
-    setPassword(loginPassword);
-
-    // Automatically login after setting credentials
-    setError("");
-    setIsLoading(true);
+  const handleQuickLogin = async () => {
+    const demoEmail = "sarah@example.com"
+    const demoPassword = "password123"
+    
+    setEmail(demoEmail)
+    setPassword(demoPassword)
+    setError("")
+    setIsLoading(true)
 
     try {
-      const { success, error } = await login(loginEmail, loginPassword);
-
-      if (success) {
-        // Get the logged in user from localStorage since state might not be updated yet
-        const loggedInUser = JSON.parse(localStorage.getItem("kineticUser") || "{}")
-        
-        if (loggedInUser.role === "patient") {
-          router.push("/dashboard");
-        } else {
-          setError("This login is for patients only. Please use the provider login.");
-        }
-      } else {
-        setError(error || "Login failed. Please check your credentials and try again.");
+      const result = await login(demoEmail, demoPassword, 'patient')
+      if (!result.success) {
+        setError("Failed to login with demo account. Please try again.")
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
-      console.error(err);
+      setError("An error occurred during demo login. Please try again.")
+      console.error("Demo login error:", err)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -167,8 +136,8 @@ export default function PatientLoginPage() {
         <div className="flex justify-center mb-4">
           <Image src="/kinetic-logo.png" alt="Kinetic Logo" width={80} height={80} />
         </div>
-        <h1 className="text-3xl font-bold text-black mb-1">Kinetic</h1>
-        <p className="text-xl text-black">Patient Portal</p>
+        <h1 className="text-3xl font-bold text-white mb-1"></h1>
+        <p className="text-xl text-white">Patient Portal</p>
       </div>
 
       <div className="w-full max-w-md bg-white rounded-xl shadow-lg overflow-hidden">
@@ -240,7 +209,7 @@ export default function PatientLoginPage() {
                 </div>
 
                 <div className="text-right">
-                  <Link href="/forgot-password" className="text-black hover:underline text-sm">
+                  <Link href="/forgot-password" className="text-[#3e82e7] hover:underline text-sm">
                     Forgot password?
                   </Link>
                 </div>
@@ -262,40 +231,65 @@ export default function PatientLoginPage() {
 
               {/* Demo Quick Login Buttons */}
               <div className="mt-4 border-t pt-4">
-                <p className="text-xs text-black mb-2 text-center">Demo Quick Login:</p>
+                <p className="text-xs text-gray-500 mb-2 text-center">Demo Quick Login:</p>
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex-1 text-xs"
-                    onClick={() => handleQuickLogin("patient")}
+                    onClick={handleQuickLogin}
                   >
-                    Patient Login
+                    Patient Demo
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     className="flex-1 text-xs"
-                    onClick={() => handleQuickLogin("provider")}
+                    onClick={() => window.location.href = '/login/provider'}
                   >
                     Provider Login
                   </Button>
                 </div>
               </div>
 
+              {/* Bypass to Dashboard Button */}
+              <div className="mt-4 border-t pt-4">
+                <p className="text-xs text-gray-500 mb-2 text-center">Quick Access:</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full text-xs bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                  onClick={() => {
+                    // Create a temporary patient user and redirect
+                    const tempUser = {
+                      id: "temp-patient",
+                      email: "demo@patient.com",
+                      name: "Demo Patient",
+                      role: "patient",
+                      avatar: "/smiling-brown-haired-woman.png"
+                    }
+                    localStorage.setItem("kineticUser", JSON.stringify(tempUser))
+                    document.cookie = `kineticUser=${JSON.stringify(tempUser)}; path=/; max-age=86400`
+                    window.location.href = '/dashboard/patient'
+                  }}
+                >
+                  🚀 Bypass to Patient Dashboard
+                </Button>
+              </div>
+
               <div className="mt-6 text-center">
-                <p className="text-sm text-black mb-2">
+                <p className="text-sm text-gray-500 mb-2">
                   Don&apos;t have an account?{" "}
                   <button
-                    className="text-black hover:underline"
+                    className="text-[#3e82e7] hover:underline"
                     onClick={() => document.getElementById("register-tab")?.click()}
                   >
                     Register now
                   </button>
                 </p>
-                <p className="text-sm text-black">
+                <p className="text-sm text-gray-500">
                   Are you a healthcare provider?{" "}
-                  <Link href="/login/provider" className="text-black hover:underline">
+                  <Link href="/login/provider" className="text-[#3e82e7] hover:underline">
                     Provider Login
                   </Link>
                 </p>
@@ -309,8 +303,8 @@ export default function PatientLoginPage() {
                   <User className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-black">Create Account</h2>
-                  <p className="text-black text-sm">Join Kinetic to start your personalized recovery journey</p>
+                  <h2 className="text-xl font-semibold text-gray-800">Create Account</h2>
+                  <p className="text-gray-500 text-sm">Join Kinetic to start your personalized recovery journey</p>
                 </div>
               </div>
 
@@ -319,9 +313,9 @@ export default function PatientLoginPage() {
                   <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="h-8 w-8 text-green-500" />
                   </div>
-                  <h3 className="text-xl font-semibold text-black mb-2">Registration Successful!</h3>
-                  <p className="text-black mb-4">Your account has been created successfully.</p>
-                  <p className="text-sm text-black">You can now log in with your credentials.</p>
+                  <h3 className="text-xl font-semibold text-gray-800 mb-2">Registration Successful!</h3>
+                  <p className="text-gray-600 mb-4">Your account has been created successfully.</p>
+                  <p className="text-sm text-gray-500">You can now log in with your credentials.</p>
                 </div>
               ) : (
                 <form onSubmit={handleRegister} className="space-y-4">
@@ -334,7 +328,7 @@ export default function PatientLoginPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="text-black">
+                      <Label htmlFor="firstName" className="text-gray-700">
                         First Name
                       </Label>
                       <Input
@@ -347,7 +341,7 @@ export default function PatientLoginPage() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="text-black">
+                      <Label htmlFor="lastName" className="text-gray-700">
                         Last Name
                       </Label>
                       <Input
@@ -362,7 +356,7 @@ export default function PatientLoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="registerEmail" className="text-black">
+                    <Label htmlFor="registerEmail" className="text-gray-700">
                       Email
                     </Label>
                     <div className="relative">
@@ -380,7 +374,7 @@ export default function PatientLoginPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="registerPassword" className="text-black">
+                    <Label htmlFor="registerPassword" className="text-gray-700">
                       Password
                     </Label>
                     <div className="relative">
@@ -395,7 +389,7 @@ export default function PatientLoginPage() {
                       />
                       <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                     </div>
-                    <p className="text-xs text-black">
+                    <p className="text-xs text-gray-500">
                       Password must be at least 8 characters with a number and special character
                     </p>
                   </div>
@@ -417,10 +411,10 @@ export default function PatientLoginPage() {
               )}
 
               <div className="mt-6 text-center">
-                <p className="text-sm text-black">
+                <p className="text-sm text-gray-500">
                   Already have an account?{" "}
                   <button
-                    className="text-black hover:underline"
+                    className="text-[#3e82e7] hover:underline"
                     onClick={() => document.getElementById("login-tab")?.click()}
                   >
                     Sign in
@@ -432,13 +426,13 @@ export default function PatientLoginPage() {
         </Tabs>
 
         <div className="px-8 py-4 bg-gray-50 text-center">
-          <p className="text-xs text-black">
+          <p className="text-xs text-gray-500">
             By signing in or creating an account, you agree to our{" "}
-            <Link href="/terms" className="text-black hover:underline">
+            <Link href="/terms" className="text-[#3e82e7] hover:underline">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" className="text-black hover:underline">
+            <Link href="/privacy" className="text-[#3e82e7] hover:underline">
               Privacy Policy
             </Link>
           </p>
@@ -446,7 +440,7 @@ export default function PatientLoginPage() {
       </div>
 
       <div className="mt-8">
-        <Link href="/" className="text-black hover:underline text-sm">
+        <Link href="/" className="text-white hover:underline text-sm">
           Return to Home
         </Link>
       </div>

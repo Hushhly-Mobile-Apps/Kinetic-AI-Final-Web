@@ -1,126 +1,70 @@
-'use client'
+"use client"
 
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { SiteHeader } from "@/components/site-header"
 import { Activity, BarChart3, FileText, Lock } from "lucide-react"
-import { useEffect, useState } from "react"
 
 export default function Home() {
-  const [isVisible, setIsVisible] = useState(false)
-  const [scrollY, setScrollY] = useState(0)
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
-  const [counters, setCounters] = useState({ patients: 0, recovery: 0, satisfaction: 0 })
-  
-  useEffect(() => {
-    setIsVisible(true)
-    
-    // Parallax scroll effect
-    const handleScroll = () => setScrollY(window.scrollY)
-    window.addEventListener('scroll', handleScroll)
-    
-    // Mouse tracking for interactive effects
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY })
+  // Bypass handler
+  const handleBypass = () => {
+    const tempUser = {
+      id: "temp-patient",
+      email: "demo@patient.com",
+      name: "Ayu Pranata",
+      role: "patient",
+      avatar: "/smiling-brown-haired-woman.png"
     }
-    window.addEventListener('mousemove', handleMouseMove)
-    
-    // Animated counters
-    const animateCounters = () => {
-      const targets = { patients: 10000, recovery: 95, satisfaction: 98 }
-      const duration = 2000
-      const steps = 60
-      const stepTime = duration / steps
-      
-      let currentStep = 0
-      const counterTimer = setInterval(() => {
-        currentStep++
-        const progress = currentStep / steps
-        
-        setCounters({
-          patients: Math.floor(targets.patients * progress),
-          recovery: Math.floor(targets.recovery * progress),
-          satisfaction: Math.floor(targets.satisfaction * progress)
-        })
-        
-        if (currentStep >= steps) {
-          clearInterval(counterTimer)
-          setCounters(targets)
-        }
-      }, stepTime)
-    }
-    
-    // Start counter animation after a delay
-    setTimeout(animateCounters, 2000)
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll)
-      window.removeEventListener('mousemove', handleMouseMove)
-    }
-  }, [])
+    localStorage.setItem("kineticUser", JSON.stringify(tempUser))
+    document.cookie = `kineticUser=${JSON.stringify(tempUser)}; path=/; max-age=86400`
+    window.location.href = "/dashboard/patient"
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1">
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-br from-white via-blue-50/30 to-indigo-50/50 relative overflow-hidden">
-          {/* Interactive background elements */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div 
-              className="absolute w-96 h-96 bg-gradient-to-r from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl"
-              style={{
-                transform: `translate(${mousePosition.x * 0.02}px, ${mousePosition.y * 0.02}px)`,
-                left: '10%',
-                top: '20%'
-              }}
-            />
-            <div 
-              className="absolute w-64 h-64 bg-gradient-to-r from-purple-400/10 to-pink-400/10 rounded-full blur-3xl"
-              style={{
-                transform: `translate(${mousePosition.x * -0.01}px, ${mousePosition.y * -0.01}px)`,
-                right: '10%',
-                bottom: '20%'
-              }}
-            />
-          </div>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none min-h-[120px] flex items-center relative z-10 bg-white/90 p-4 rounded-lg" style={{color: '#000000 !important', fontWeight: 'bold', textShadow: '1px 1px 2px rgba(255,255,255,0.8)'}}>
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl">
                   Personalized Recovery Powered by Movement Intelligence
                 </h1>
-                <p className={`text-black !text-black md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed transition-all duration-1000 delay-1000 relative z-10 bg-white/80 p-3 rounded ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{color: '#000000 !important'}}>
+                <p className="text-gray-500 md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                   Transform your rehabilitation with intelligent movement coaching and data-driven therapy. Our platform
                   bridges home exercises with clinical expertise for a smoother, faster recovery experience.
                 </p>
-                <div className={`flex flex-col gap-2 min-[400px]:flex-row transition-all duration-1000 delay-1500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+                <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Link href="/recovery-journey">
                     <Button className="bg-[#001a41] text-white hover:bg-[#001a41]/90">
                       Start Your Recovery Journey
                     </Button>
                   </Link>
                   <Link href="/demo">
-                    <Button variant="outline" className="border-[#001a41] !text-black" style={{color: '#000000 !important'}}>
+                    <Button variant="outline" className="border-[#001a41] text-[#001a41]">
                       Watch Demo
                     </Button>
                   </Link>
                 </div>
+                {/* BYPASS BUTTON */}
+                <Button
+                  variant="outline"
+                  className="mt-4 w-fit bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+                  onClick={handleBypass}
+                >
+                  🚀 Bypass to Patient Dashboard
+                </Button>
               </div>
-              <div className="mx-auto lg:mx-0 lg:flex-1 relative group">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-indigo-600/20 rounded-lg blur-xl group-hover:blur-2xl transition-all duration-500 opacity-0 group-hover:opacity-100" />
+              <div className="mx-auto lg:mx-0 lg:flex-1">
                 <Image
                   src="/digital-rehabilitation-therapy.png"
                   alt="Rehabilitation therapy with digital screens"
                   width={600}
                   height={600}
-                  className="rounded-lg object-cover transform transition-all duration-700 group-hover:scale-105 group-hover:shadow-2xl relative z-10"
-                  style={{
-                    transform: `translateY(${scrollY * 0.1}px) scale(${hoveredCard === 0 ? 1.02 : 1})`
-                  }}
+                  className="rounded-lg object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-20" />
               </div>
             </div>
           </div>
@@ -136,163 +80,10 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Stats Section */}
-            <div className="grid md:grid-cols-3 gap-8 mb-16">
-              <div className="text-center group cursor-pointer">
-                <div className="text-4xl font-bold text-[#001a41] mb-2 transform transition-all duration-500 group-hover:scale-110">
-                  {counters.patients.toLocaleString()}+
-                </div>
-                <div className="text-gray-600 group-hover:text-[#001a41] transition-colors duration-300">Patients Served</div>
-              </div>
-              <div className="text-center group cursor-pointer">
-                <div className="text-4xl font-bold text-[#001a41] mb-2 transform transition-all duration-500 group-hover:scale-110">
-                  {counters.recovery}%
-                </div>
-                <div className="text-gray-600 group-hover:text-[#001a41] transition-colors duration-300">Recovery Rate</div>
-              </div>
-              <div className="text-center group cursor-pointer">
-                <div className="text-4xl font-bold text-[#001a41] mb-2 transform transition-all duration-500 group-hover:scale-110">
-                  {counters.satisfaction}%
-                </div>
-                <div className="text-gray-600 group-hover:text-[#001a41] transition-colors duration-300">Patient Satisfaction</div>
-              </div>
-            </div>
-
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <style jsx>{`
-                .feature-card {
-                  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-                  animation: slideInUp 0.6s ease-out;
-                  position: relative;
-                  overflow: hidden;
-                }
-                .feature-card::before {
-                  content: '';
-                  position: absolute;
-                  top: 0;
-                  left: -100%;
-                  width: 100%;
-                  height: 100%;
-                  background: linear-gradient(90deg, transparent, rgba(0, 26, 65, 0.1), transparent);
-                  transition: left 0.5s;
-                }
-                .feature-card:hover::before {
-                  left: 100%;
-                }
-                .feature-card:hover {
-                  transform: translateY(-12px) scale(1.02);
-                  box-shadow: 0 25px 50px -12px rgba(0, 26, 65, 0.25);
-                  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-                }
-                .feature-card:nth-child(1) { animation-delay: 0.1s; }
-                .feature-card:nth-child(2) { animation-delay: 0.2s; }
-                .feature-card:nth-child(3) { animation-delay: 0.3s; }
-                .feature-card:nth-child(4) { animation-delay: 0.4s; }
-                
-                @keyframes slideInUp {
-                  from {
-                    opacity: 0;
-                    transform: translateY(30px);
-                  }
-                  to {
-                    opacity: 1;
-                    transform: translateY(0);
-                  }
-                }
-                
-                .typewriter-text {
-                  border-right: 2px solid #001a41;
-                }
-                
-                .pulse-button {
-                  animation: pulse 2s infinite;
-                  position: relative;
-                  overflow: hidden;
-                }
-                .pulse-button::before {
-                  content: '';
-                  position: absolute;
-                  top: 50%;
-                  left: 50%;
-                  width: 0;
-                  height: 0;
-                  background: rgba(255, 255, 255, 0.3);
-                  border-radius: 50%;
-                  transform: translate(-50%, -50%);
-                  transition: width 0.6s, height 0.6s;
-                }
-                .pulse-button:hover::before {
-                  width: 300px;
-                  height: 300px;
-                }
-                
-                @keyframes pulse {
-                  0%, 100% {
-                    transform: scale(1);
-                    box-shadow: 0 0 0 0 rgba(0, 26, 65, 0.4);
-                  }
-                  50% {
-                    transform: scale(1.05);
-                    box-shadow: 0 0 0 10px rgba(0, 26, 65, 0);
-                  }
-                }
-                
-                .floating-text {
-                  animation: float 3s ease-in-out infinite;
-                }
-                
-                @keyframes float {
-                  0%, 100% {
-                    transform: translateY(0px);
-                  }
-                  50% {
-                    transform: translateY(-10px);
-                  }
-                }
-                
-                .glow-text {
-                  animation: glow 3s ease-in-out infinite alternate;
-                  background: linear-gradient(45deg, #001a41, #003d82, #001a41);
-                  background-size: 200% 200%;
-                  -webkit-background-clip: text;
-                  -webkit-text-fill-color: transparent;
-                  background-clip: text;
-                }
-                
-                @keyframes glow {
-                  0% {
-                    background-position: 0% 50%;
-                    filter: drop-shadow(0 0 5px rgba(0, 26, 65, 0.5));
-                  }
-                  50% {
-                    background-position: 100% 50%;
-                    filter: drop-shadow(0 0 15px rgba(0, 26, 65, 0.8));
-                  }
-                  100% {
-                    background-position: 0% 50%;
-                    filter: drop-shadow(0 0 5px rgba(0, 26, 65, 0.5));
-                  }
-                }
-                
-                .interactive-bg {
-                  background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-                  background-size: 400% 400%;
-                  animation: gradientShift 15s ease infinite;
-                }
-                
-                @keyframes gradientShift {
-                  0% { background-position: 0% 50%; }
-                  50% { background-position: 100% 50%; }
-                  100% { background-position: 0% 50%; }
-                }
-              `}</style>
-              <div 
-                className="bg-white p-6 rounded-lg shadow-sm feature-card cursor-pointer"
-                onMouseEnter={() => setHoveredCard(1)}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                <div className={`bg-gradient-to-br from-[#f3f4f6] to-[#e5e7eb] w-12 h-12 rounded-full flex items-center justify-center mb-4 transform transition-all duration-500 ${hoveredCard === 1 ? 'scale-110 rotate-12 bg-gradient-to-br from-blue-100 to-indigo-100' : ''}`}>
-                  <Activity className={`w-6 h-6 transition-all duration-500 ${hoveredCard === 1 ? 'text-[#001a41] scale-110' : 'text-[#111827]'}`} />
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-[#f3f4f6] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                  <Activity className="w-6 h-6 text-[#111827]" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Movement Intelligence</h3>
                 <p className="text-[#4b5563] text-sm">
@@ -300,13 +91,9 @@ export default function Home() {
                 </p>
               </div>
 
-              <div 
-                className="bg-white p-6 rounded-lg shadow-sm feature-card cursor-pointer"
-                onMouseEnter={() => setHoveredCard(2)}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                <div className={`bg-gradient-to-br from-[#f3f4f6] to-[#e5e7eb] w-12 h-12 rounded-full flex items-center justify-center mb-4 transform transition-all duration-500 ${hoveredCard === 2 ? 'scale-110 rotate-12 bg-gradient-to-br from-green-100 to-emerald-100' : ''}`}>
-                  <FileText className={`w-6 h-6 transition-all duration-500 ${hoveredCard === 2 ? 'text-[#001a41] scale-110' : 'text-[#111827]'}`} />
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-[#f3f4f6] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                  <FileText className="w-6 h-6 text-[#111827]" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Responsive Therapy Plans</h3>
                 <p className="text-[#4b5563] text-sm">
@@ -314,13 +101,9 @@ export default function Home() {
                 </p>
               </div>
 
-              <div 
-                className="bg-white p-6 rounded-lg shadow-sm feature-card cursor-pointer"
-                onMouseEnter={() => setHoveredCard(3)}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                <div className={`bg-gradient-to-br from-[#f3f4f6] to-[#e5e7eb] w-12 h-12 rounded-full flex items-center justify-center mb-4 transform transition-all duration-500 ${hoveredCard === 3 ? 'scale-110 rotate-12 bg-gradient-to-br from-purple-100 to-violet-100' : ''}`}>
-                  <BarChart3 className={`w-6 h-6 transition-all duration-500 ${hoveredCard === 3 ? 'text-[#001a41] scale-110' : 'text-[#111827]'}`} />
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-[#f3f4f6] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                  <BarChart3 className="w-6 h-6 text-[#111827]" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Recovery Analytics</h3>
                 <p className="text-[#4b5563] text-sm">
@@ -328,13 +111,9 @@ export default function Home() {
                 </p>
               </div>
 
-              <div 
-                className="bg-white p-6 rounded-lg shadow-sm feature-card cursor-pointer"
-                onMouseEnter={() => setHoveredCard(4)}
-                onMouseLeave={() => setHoveredCard(null)}
-              >
-                <div className={`bg-gradient-to-br from-[#f3f4f6] to-[#e5e7eb] w-12 h-12 rounded-full flex items-center justify-center mb-4 transform transition-all duration-500 ${hoveredCard === 4 ? 'scale-110 rotate-12 bg-gradient-to-br from-red-100 to-pink-100' : ''}`}>
-                  <Lock className={`w-6 h-6 transition-all duration-500 ${hoveredCard === 4 ? 'text-[#001a41] scale-110' : 'text-[#111827]'}`} />
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <div className="bg-[#f3f4f6] w-12 h-12 rounded-full flex items-center justify-center mb-4">
+                  <Lock className="w-6 h-6 text-[#111827]" />
                 </div>
                 <h3 className="font-semibold text-lg mb-2">Clinical-Grade Privacy</h3>
                 <p className="text-[#4b5563] text-sm">
@@ -349,35 +128,35 @@ export default function Home() {
         <section className="py-16" id="how-it-works">
           <div className="container mx-auto px-4">
             <div className="text-center mb-16">
-              <h2 className="text-3xl font-bold text-[#111827] mb-4 floating-text">How It Works</h2>
-              <p className="text-[#4b5563] glow-text">Three simple steps to start your recovery journey</p>
+              <h2 className="text-3xl font-bold text-[#111827] mb-4">How It Works</h2>
+              <p className="text-[#4b5563]">Three simple steps to start your recovery journey</p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center group cursor-pointer">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#f3f4f6] to-[#e5e7eb] rounded-full flex items-center justify-center mx-auto mb-6 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:bg-gradient-to-br group-hover:from-blue-100 group-hover:to-indigo-100">
-                  <span className="text-[#111827] font-semibold group-hover:text-[#001a41] transition-colors duration-300">1</span>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-[#f3f4f6] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-[#111827] font-semibold">1</span>
                 </div>
-                <h3 className="font-semibold text-lg mb-2 group-hover:text-[#001a41] transition-colors duration-300">Initial Assessment</h3>
-                <p className="text-[#4b5563] text-sm group-hover:text-[#374151] transition-colors duration-300">
+                <h3 className="font-semibold text-lg mb-2">Initial Assessment</h3>
+                <p className="text-[#4b5563] text-sm">
                   Complete a comprehensive evaluation of your condition and goals
                 </p>
               </div>
 
-              <div className="text-center group cursor-pointer">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#f3f4f6] to-[#e5e7eb] rounded-full flex items-center justify-center mx-auto mb-6 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:bg-gradient-to-br group-hover:from-green-100 group-hover:to-emerald-100">
-                  <span className="text-[#111827] font-semibold group-hover:text-[#001a41] transition-colors duration-300">2</span>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-[#f3f4f6] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-[#111827] font-semibold">2</span>
                 </div>
-                <h3 className="font-semibold text-lg mb-2 group-hover:text-[#001a41] transition-colors duration-300">Personalized Plan</h3>
-                <p className="text-[#4b5563] text-sm group-hover:text-[#374151] transition-colors duration-300">Receive a customized therapy program tailored to your needs</p>
+                <h3 className="font-semibold text-lg mb-2">Personalized Plan</h3>
+                <p className="text-[#4b5563] text-sm">Receive a customized therapy program tailored to your needs</p>
               </div>
 
-              <div className="text-center group cursor-pointer">
-                <div className="w-16 h-16 bg-gradient-to-br from-[#f3f4f6] to-[#e5e7eb] rounded-full flex items-center justify-center mx-auto mb-6 transform transition-all duration-500 group-hover:scale-110 group-hover:rotate-12 group-hover:bg-gradient-to-br group-hover:from-purple-100 group-hover:to-violet-100">
-                  <span className="text-[#111827] font-semibold group-hover:text-[#001a41] transition-colors duration-300">3</span>
+              <div className="text-center">
+                <div className="w-16 h-16 bg-[#f3f4f6] rounded-full flex items-center justify-center mx-auto mb-6">
+                  <span className="text-[#111827] font-semibold">3</span>
                 </div>
-                <h3 className="font-semibold text-lg mb-2 group-hover:text-[#001a41] transition-colors duration-300">Track Progress</h3>
-                <p className="text-[#4b5563] text-sm group-hover:text-[#374151] transition-colors duration-300">Monitor your improvements with detailed analytics and feedback</p>
+                <h3 className="font-semibold text-lg mb-2">Track Progress</h3>
+                <p className="text-[#4b5563] text-sm">Monitor your improvements with detailed analytics and feedback</p>
               </div>
             </div>
           </div>
@@ -394,70 +173,61 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white p-6 rounded-lg shadow-sm transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:bg-gradient-to-br hover:from-white hover:to-blue-50/50 group cursor-pointer">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex items-center mb-4">
-                  <div className="relative">
-                    <Image
-                      src="/smiling-brown-haired-woman.png"
-                      alt="Sarah M."
-                      width={48}
-                      height={48}
-                      className="rounded-full mr-4 transform transition-all duration-300 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400/20 to-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mr-4" />
-                  </div>
+                  <Image
+                    src="/smiling-brown-haired-woman.png"
+                    alt="Sarah M."
+                    width={48}
+                    height={48}
+                    className="rounded-full mr-4"
+                  />
                   <div>
-                    <h4 className="font-semibold group-hover:text-[#001a41] transition-colors duration-300">Sarah M.</h4>
-                    <p className="text-sm text-[#4b5563] group-hover:text-[#001a41]/70 transition-colors duration-300">Knee Rehabilitation</p>
+                    <h4 className="font-semibold">Sarah M.</h4>
+                    <p className="text-sm text-[#4b5563]">Knee Rehabilitation</p>
                   </div>
                 </div>
-                <p className="text-[#4b5563] text-sm italic group-hover:text-[#374151] transition-colors duration-300">
+                <p className="text-[#4b5563] text-sm italic">
                   "The AI-guided exercises and real-time feedback helped me recover from my knee surgery faster than
                   expected. I'm back to my active lifestyle!"
                 </p>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow-sm transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:bg-gradient-to-br hover:from-white hover:to-green-50/50 group cursor-pointer">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex items-center mb-4">
-                  <div className="relative">
-                    <Image
-                      src="/athletic-man-short-hair.png"
-                      alt="Michael R."
-                      width={48}
-                      height={48}
-                      className="rounded-full mr-4 transform transition-all duration-300 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-400/20 to-emerald-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mr-4" />
-                  </div>
+                  <Image
+                    src="/athletic-man-short-hair.png"
+                    alt="Michael R."
+                    width={48}
+                    height={48}
+                    className="rounded-full mr-4"
+                  />
                   <div>
-                    <h4 className="font-semibold group-hover:text-[#001a41] transition-colors duration-300">Michael R.</h4>
-                    <p className="text-sm text-[#4b5563] group-hover:text-[#001a41]/70 transition-colors duration-300">Sports Recovery</p>
+                    <h4 className="font-semibold">Michael R.</h4>
+                    <p className="text-sm text-[#4b5563]">Sports Recovery</p>
                   </div>
                 </div>
-                <p className="text-[#4b5563] text-sm italic group-hover:text-[#374151] transition-colors duration-300">
+                <p className="text-[#4b5563] text-sm italic">
                   "As a professional athlete, precise movement is crucial. This platform measures my performance with
                   extreme accuracy for optimal recovery."
                 </p>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow-sm transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:bg-gradient-to-br hover:from-white hover:to-purple-50/50 group cursor-pointer">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
                 <div className="flex items-center mb-4">
-                  <div className="relative">
-                    <Image
-                      src="/older-man-glasses.png"
-                      alt="David L."
-                      width={48}
-                      height={48}
-                      className="rounded-full mr-4 transform transition-all duration-300 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-400/20 to-violet-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 mr-4" />
-                  </div>
+                  <Image
+                    src="/older-man-glasses.png"
+                    alt="David L."
+                    width={48}
+                    height={48}
+                    className="rounded-full mr-4"
+                  />
                   <div>
-                    <h4 className="font-semibold group-hover:text-[#001a41] transition-colors duration-300">David L.</h4>
-                    <p className="text-sm text-[#4b5563] group-hover:text-[#001a41]/70 transition-colors duration-300">Back Pain Management</p>
+                    <h4 className="font-semibold">David L.</h4>
+                    <p className="text-sm text-[#4b5563]">Back Pain Management</p>
                   </div>
                 </div>
-                <p className="text-[#4b5563] text-sm italic group-hover:text-[#374151] transition-colors duration-300">
+                <p className="text-[#4b5563] text-sm italic">
                   "The personalized exercise plans and progress tracking have made a huge difference in managing my
                   chronic back pain. Highly recommended!"
                 </p>
@@ -477,32 +247,32 @@ export default function Home() {
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <div className="bg-white p-6 rounded-lg shadow-sm transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:bg-gradient-to-br hover:from-white hover:to-blue-50/50 group cursor-pointer">
-                <h3 className="font-semibold text-lg mb-2 group-hover:text-[#001a41] transition-colors duration-300">Exercise Guides</h3>
-                <p className="text-[#4b5563] text-sm mb-4 group-hover:text-[#374151] transition-colors duration-300">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="font-semibold text-lg mb-2">Exercise Guides</h3>
+                <p className="text-[#4b5563] text-sm mb-4">
                   Detailed instructions and videos for common rehabilitation exercises
                 </p>
-                <Link href="/resources/exercise-guides" className="text-[#001a41] text-sm font-medium hover:underline group-hover:font-bold transition-all duration-300">
+                <Link href="/resources/exercise-guides" className="text-[#001a41] text-sm font-medium hover:underline">
                   Learn more →
                 </Link>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow-sm transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:bg-gradient-to-br hover:from-white hover:to-green-50/50 group cursor-pointer">
-                <h3 className="font-semibold text-lg mb-2 group-hover:text-[#001a41] transition-colors duration-300">Recovery Tips</h3>
-                <p className="text-[#4b5563] text-sm mb-4 group-hover:text-[#374151] transition-colors duration-300">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="font-semibold text-lg mb-2">Recovery Tips</h3>
+                <p className="text-[#4b5563] text-sm mb-4">
                   Expert advice to maximize your rehabilitation results and prevent setbacks
                 </p>
-                <Link href="/resources/recovery-tips" className="text-[#001a41] text-sm font-medium hover:underline group-hover:font-bold transition-all duration-300">
+                <Link href="/resources/recovery-tips" className="text-[#001a41] text-sm font-medium hover:underline">
                   Learn more →
                 </Link>
               </div>
 
-              <div className="bg-white p-6 rounded-lg shadow-sm transform transition-all duration-500 hover:scale-105 hover:shadow-xl hover:bg-gradient-to-br hover:from-white hover:to-purple-50/50 group cursor-pointer">
-                <h3 className="font-semibold text-lg mb-2 group-hover:text-[#001a41] transition-colors duration-300">FAQ</h3>
-                <p className="text-[#4b5563] text-sm mb-4 group-hover:text-[#374151] transition-colors duration-300">
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <h3 className="font-semibold text-lg mb-2">FAQ</h3>
+                <p className="text-[#4b5563] text-sm mb-4">
                   Answers to common questions about our platform and rehabilitation process
                 </p>
-                <Link href="/resources/faq" className="text-[#001a41] text-sm font-medium hover:underline group-hover:font-bold transition-all duration-300">
+                <Link href="/resources/faq" className="text-[#001a41] text-sm font-medium hover:underline">
                   Learn more →
                 </Link>
               </div>
@@ -511,30 +281,18 @@ export default function Home() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 bg-gradient-to-r from-[#111827] via-[#1e293b] to-[#111827] text-white relative overflow-hidden">
-          {/* Animated background */}
-          <div className="absolute inset-0">
-            <div className="absolute w-full h-full bg-gradient-to-r from-blue-600/10 via-transparent to-purple-600/10 animate-pulse" />
-            <div 
-              className="absolute w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"
-              style={{
-                transform: `translate(${mousePosition.x * 0.01}px, ${mousePosition.y * 0.01}px)`,
-                left: '20%',
-                top: '10%'
-              }}
-            />
-          </div>
+        <section className="py-16 bg-[#111827] text-white">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-bold mb-4 floating-text glow-text text-white">Take the First Step Toward Better Recovery</h2>
-            <p className="mb-8 max-w-2xl mx-auto text-white">
+            <h2 className="text-3xl font-bold mb-4">Take the First Step Toward Better Recovery</h2>
+            <p className="mb-8 max-w-2xl mx-auto">
               Join a community of successful recoveries supported by cutting-edge rehabilitation technology
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Link href="/free-trial">
-                <Button className="bg-white text-black hover:bg-[#f3f4f6] pulse-button" style={{color: '#000000 !important'}}>Start Free Trial</Button>
+                <Button className="bg-white text-[#111827] hover:bg-[#f3f4f6]">Start Free Trial</Button>
               </Link>
               <Link href="/schedule-demo">
-                <Button variant="outline" className="border-white text-white hover:bg-white/10 pulse-button">
+                <Button variant="outline" className="border-white text-white hover:bg-white/10">
                   Schedule Demo
                 </Button>
               </Link>

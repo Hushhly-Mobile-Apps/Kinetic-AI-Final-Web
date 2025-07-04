@@ -1,10 +1,7 @@
 "use client"
-import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
-import { Switch } from "@/components/ui/switch"
 import {
   Home,
   Activity,
@@ -25,63 +22,14 @@ import {
   Download,
   Share2,
   ChevronRight,
-  RefreshCw,
 } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
-import { useProgress } from "@/hooks/use-api"
-import { useToast } from "@/components/ui/use-toast"
 
 export default function ProgressPage() {
   const { user, logout } = useAuth()
-  const { toast } = useToast()
-  const [activeTab, setActiveTab] = useState("overview")
-  const [selectedTimeframe, setSelectedTimeframe] = useState('week')
-  
-  // Fetch progress data using API
-  const { data: progressData, loading, error, refetch } = useProgress(user?.id, selectedTimeframe)
 
-  // Handle data refresh
-  const handleRefresh = () => {
-    refetch()
-    toast({
-      title: "Data Refreshed",
-      description: "Your progress data has been updated.",
-    })
-  }
-  
-  // Handle timeframe change
-  const handleTimeframeChange = (timeframe: string) => {
-    setSelectedTimeframe(timeframe)
-    // This will trigger a re-fetch with new timeframe
-  }
-  
-  // Handle goal update
-  const handleGoalUpdate = (newGoal: number) => {
-    // In a real app, this would call an API to update the goal
-    toast({
-      title: "Goal Updated",
-      description: `Your weekly goal has been set to ${newGoal}%.`,
-    })
-  }
-  
-  // Handle export data
-  const handleExportData = () => {
-    // In a real app, this would generate and download a report
-    toast({
-      title: "Export Started",
-      description: "Your progress report is being generated...",
-    })
-    
-    setTimeout(() => {
-      toast({
-        title: "Export Complete",
-        description: "Your progress report has been downloaded.",
-      })
-    }, 2000)
-  }
-  
-  // Use API data or fallback to mock data
-  const recoverySummary = progressData?.summary || [
+  // Mock data for recovery summary
+  const recoverySummary = [
     {
       id: 1,
       title: "Overall Progress",
@@ -273,35 +221,8 @@ export default function ProgressPage() {
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
         <div className="p-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-bold text-[#111827] mb-2">Progress</h1>
-              <p className="text-gray-500">Track your rehabilitation journey and achievements</p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleRefresh}
-                disabled={loading}
-              >
-                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={handleExportData}
-              >
-                <Download className="w-4 h-4 mr-2" />
-                Export
-              </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-            </div>
-          </div>
+          <h1 className="text-2xl font-bold text-[#111827] mb-2">Progress</h1>
+          <p className="text-gray-500 mb-6">Track your rehabilitation journey and achievements</p>
 
           {/* Tabs */}
           <div className="flex border-b border-gray-200 mb-6">
@@ -330,45 +251,8 @@ export default function ProgressPage() {
               My Submissions
             </Link>
           </div>
-          
-          {/* Timeframe Selector */}
-          <div className="flex items-center space-x-2 mb-6">
-            <span className="text-sm font-medium text-gray-700">View:</span>
-            <div className="flex space-x-1">
-              {['week', 'month', 'quarter', 'year'].map((timeframe) => (
-                <button
-                  key={timeframe}
-                  onClick={() => handleTimeframeChange(timeframe)}
-                  className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                    selectedTimeframe === timeframe
-                      ? "bg-blue-100 text-blue-600"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                  }`}
-                >
-                  {timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-                </button>
-              ))}
-            </div>
-          </div>
 
-          {/* Loading State */}
-          {loading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Loading progress data...</p>
-            </div>
-          )}
-          
-          {/* Error State */}
-          {error && (
-            <div className="text-center py-8">
-              <p className="text-red-600 mb-2">Error loading progress data: {error}</p>
-              <Button onClick={refetch}>Try Again</Button>
-            </div>
-          )}
-          
           {/* Recovery Summary */}
-          {!loading && !error && (
           <div className="mb-10">
             <h2 className="text-lg font-semibold text-[#111827] mb-4">Recovery Summary</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -529,14 +413,13 @@ export default function ProgressPage() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-4">
-            <Button className="bg-[#014585] hover:bg-[#013a70]" onClick={handleExportData}>
+            <Button className="bg-[#014585] hover:bg-[#013a70]">
               <Download className="mr-2 h-4 w-4" /> Download Progress Report
             </Button>
             <Button variant="outline" className="border-[#014585] text-[#014585] hover:bg-[#014585] hover:text-white">
               <Share2 className="mr-2 h-4 w-4" /> Share with Therapist
             </Button>
           </div>
-          )}
         </div>
       </div>
     </div>

@@ -30,7 +30,7 @@ export default function AdminRegisterPage() {
           <Image src="/kinetic-logo.png" alt="Kinetic Logo" width={80} height={80} />
         </div>
 
-        <h1 className="text-2xl font-bold text-black text-center mb-8">Create your account</h1>
+        <h1 className="text-2xl font-bold text-white text-center mb-8">Create your account</h1>
 
         <Tabs defaultValue="admin" className="w-full mb-8">
           <TabsList className="grid grid-cols-3 w-full">
@@ -46,14 +46,14 @@ export default function AdminRegisterPage() {
 
         <form className="space-y-6">
           <div className="space-y-2">
-            <label htmlFor="fullName" className="text-black">
+            <label htmlFor="fullName" className="text-white">
               Full Name
             </label>
             <Input id="fullName" placeholder="Enter your full name" className="bg-white h-12 rounded-md" required />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="email" className="text-black">
+            <label htmlFor="email" className="text-white">
               Email
             </label>
             <div className="relative">
@@ -69,7 +69,7 @@ export default function AdminRegisterPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="password" className="text-black">
+            <label htmlFor="password" className="text-white">
               Password
             </label>
             <div className="relative">
@@ -91,7 +91,7 @@ export default function AdminRegisterPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-black">
+            <label htmlFor="confirmPassword" className="text-white">
               Confirm Password
             </label>
             <div className="relative">
@@ -117,7 +117,7 @@ export default function AdminRegisterPage() {
               <Switch id="terms" checked={termsAgreed} onCheckedChange={setTermsAgreed} />
             </div>
             <div className="ml-3 text-sm">
-              <label htmlFor="terms" className="text-black">
+              <label htmlFor="terms" className="text-white">
                 I agree to the{" "}
                 <Link href="/terms" className="text-blue-300 hover:underline">
                   Terms of Service
@@ -135,7 +135,7 @@ export default function AdminRegisterPage() {
               <Switch id="updates" checked={emailUpdates} onCheckedChange={setEmailUpdates} />
             </div>
             <div className="ml-3 text-sm">
-              <label htmlFor="updates" className="text-black">
+              <label htmlFor="updates" className="text-white">
                 I consent to receive email updates about new features
               </label>
             </div>
@@ -147,7 +147,7 @@ export default function AdminRegisterPage() {
         </form>
 
         <div className="mt-8 text-center">
-          <p className="text-black text-sm mb-4">Or sign up with</p>
+          <p className="text-white text-sm mb-4">Or sign up with</p>
           <div className="flex justify-center space-x-4">
             <Button variant="outline" className="bg-white hover:bg-gray-100 px-6">
               Google

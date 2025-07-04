@@ -4,11 +4,29 @@ import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva, type VariantProps } from "class-variance-authority"
 import { X } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 
-const ToastProvider = ToastPrimitives.Provider
+// Toast variant styles
+const toastVariants = cva(
+  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
+  {
+    variants: {
+      variant: {
+        default: "border bg-background text-foreground",
+        destructive: "destructive group border-destructive bg-destructive text-destructive-foreground",
+        success: "bg-green-50 border-green-200 text-green-800",
+        error: "bg-red-50 border-red-200 text-red-800",
+        loading: "bg-blue-50 border-blue-200 text-blue-800",
+        info: "bg-gray-50 border-gray-200 text-gray-800",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
 
+// Toast Viewport
 const ToastViewport = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Viewport>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Viewport>
@@ -24,23 +42,7 @@ const ToastViewport = React.forwardRef<
 ))
 ToastViewport.displayName = ToastPrimitives.Viewport.displayName
 
-const toastVariants = cva(
-  "group pointer-events-auto relative flex w-full items-center justify-between space-x-4 overflow-hidden rounded-md border p-6 pr-8 shadow-lg transition-all data-[swipe=cancel]:translate-x-0 data-[swipe=end]:translate-x-[var(--radix-toast-swipe-end-x)] data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out data-[state=closed]:fade-out-80 data-[state=closed]:slide-out-to-right-full data-[state=open]:slide-in-from-top-full data-[state=open]:sm:slide-in-from-bottom-full",
-  {
-    variants: {
-      variant: {
-        default: "border bg-background text-foreground",
-        destructive:
-          "destructive group border-destructive bg-destructive text-destructive-foreground",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  }
-)
-
-const Toast = React.forwardRef<
+const ToastRoot = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Root>,
   React.ComponentPropsWithoutRef<typeof ToastPrimitives.Root> &
     VariantProps<typeof toastVariants>
@@ -53,7 +55,7 @@ const Toast = React.forwardRef<
     />
   )
 })
-Toast.displayName = ToastPrimitives.Root.displayName
+ToastRoot.displayName = ToastPrimitives.Root.displayName
 
 const ToastAction = React.forwardRef<
   React.ElementRef<typeof ToastPrimitives.Action>,
@@ -112,18 +114,120 @@ const ToastDescription = React.forwardRef<
 ))
 ToastDescription.displayName = ToastPrimitives.Description.displayName
 
-type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
+// Types
+type ToastType = "success" | "error" | "loading" | "info"
 
+interface CustomToastProps {
+  message: string
+  type: ToastType
+  onClose: () => void
+  duration?: number
+}
+
+function CustomToast({ message, type, onClose, duration = 5000 }: CustomToastProps) {
+  React.useEffect(() => {
+    if (type !== "loading") {
+      const timer = setTimeout(onClose, duration)
+      return () => clearTimeout(timer)
+    }
+  }, [onClose, duration, type])
+
+  const getIcon = () => {
+    switch (type) {
+      case "success":
+        return "✅"
+      case "error":
+        return "❌"
+      case "loading":
+        return "⏳"
+      case "info":
+        return "ℹ️"
+      default:
+        return "ℹ️"
+    }
+  }
+
+  return (
+    <ToastRoot variant={type}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <span className="text-lg">{getIcon()}</span>
+          <div>
+            <ToastTitle>{type.charAt(0).toUpperCase() + type.slice(1)}</ToastTitle>
+            <ToastDescription>{message}</ToastDescription>
+          </div>
+        </div>
+        <ToastClose onClick={onClose} />
+      </div>
+    </ToastRoot>
+  )
+}
+
+// Toast Context and Provider
+interface ToastContextType {
+  showToast: (message: string, type: ToastType) => void
+}
+
+const ToastContext = React.createContext<ToastContextType | undefined>(undefined)
+
+function CustomToastProvider({ children }: { children: React.ReactNode }) {
+  const [toasts, setToasts] = React.useState<Array<{
+    id: string
+    message: string
+    type: ToastType
+  }>>([])
+
+  const showToast = React.useCallback((message: string, type: ToastType) => {
+    const id = Math.random().toString(36).substr(2, 9)
+    setToasts(prev => [...prev, { id, message, type }])
+  }, [])
+
+  const removeToast = React.useCallback((id: string) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id))
+  }, [])
+
+  return (
+    <ToastContext.Provider value={{ showToast }}>
+      <ToastPrimitives.Provider>
+        {children}
+        <ToastViewport />
+        {toasts.map((toast) => (
+          <CustomToast
+            key={toast.id}
+            message={toast.message}
+            type={toast.type}
+            onClose={() => removeToast(toast.id)}
+          />
+        ))}
+      </ToastPrimitives.Provider>
+    </ToastContext.Provider>
+  )
+}
+
+export function useToast() {
+  const context = React.useContext(ToastContext)
+  if (context === undefined) {
+    throw new Error("useToast must be used within a CustomToastProvider")
+  }
+  return context
+}
+
+// Export all components
+// Export types
+type ToastProps = CustomToastProps
 type ToastActionElement = React.ReactElement<typeof ToastAction>
 
-export {
-  type ToastProps,
-  type ToastActionElement,
-  ToastProvider,
-  ToastViewport,
-  Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
-  ToastAction,
-}
+// Export components
+export const Root = ToastRoot
+export const Action = ToastAction
+export const Close = ToastClose
+export const Description = ToastDescription
+export const Title = ToastTitle
+export const Viewport = ToastViewport
+export const Toast = CustomToast
+export const Provider = CustomToastProvider
+
+// Export types
+export type { ToastProps, ToastType, ToastActionElement }
+
+export { ToastAction }

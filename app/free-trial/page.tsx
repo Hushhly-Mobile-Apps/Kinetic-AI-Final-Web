@@ -44,7 +44,7 @@ export default function FreeTrialPage() {
                 <Sparkles className="w-8 h-8 text-white" />
               </div>
               <h1 className="text-2xl font-bold text-[#111827] mb-2">Start Your Free Trial</h1>
-              <p className="text-gray-600">Experience smart rehabilitation</p>
+              <p className="text-gray-600">Experience AI-powered rehabilitation</p>
             </div>
             
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -128,7 +128,7 @@ export default function FreeTrialPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Real-time Pose Detection</h3>
-                  <p className="text-sm text-gray-600">Automated movement analysis using your camera</p>
+                  <p className="text-sm text-gray-600">AI-powered movement analysis using your camera</p>
                 </div>
               </div>
               
@@ -183,7 +183,7 @@ export default function FreeTrialPage() {
                 <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
               <DialogTitle className="text-xl font-bold text-gray-900 mb-2">
-                Welcome to Kinetic Rehabilitation!
+                Welcome to Kinetic AI!
               </DialogTitle>
               <p className="text-gray-600 mb-6">
                 Your free trial has been activated. Check your email for login instructions.

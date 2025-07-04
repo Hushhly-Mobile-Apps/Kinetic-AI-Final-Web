@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -20,105 +20,16 @@ import {
   MoreVertical,
   Play,
   LogOut,
-  ThumbsUp,
-  Bookmark,
-  Video,
-  Star,
-  Clock,
-  Filter,
-  Grid,
-  List,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/components/auth-provider"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { useVideos, useUpdateVideo } from "@/hooks/use-api"
-import { useToast } from "@/components/ui/use-toast"
 
 export default function VideoLibraryPage() {
   const { user, logout } = useAuth()
-  const { toast } = useToast()
   const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState('all')
-  const [viewMode, setViewMode] = useState('grid')
-  const [selectedVideo, setSelectedVideo] = useState<any>(null)
-  
-  // Fetch videos using API
-  const { data: videos, loading, error, refetch } = useVideos({
-    search: searchQuery,
-    category: selectedCategory !== 'all' ? selectedCategory : undefined
-  })
-  const { updateVideo, loading: updating } = useUpdateVideo()
-
-  // Handle video interactions
-  const handleLikeVideo = async (videoId: string) => {
-    try {
-      await updateVideo({
-        id: videoId,
-        action: 'like'
-      })
-      
-      toast({
-        title: "Video Liked",
-        description: "Added to your liked videos.",
-      })
-      
-      refetch()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to like video. Please try again.",
-        variant: "destructive"
-      })
-    }
-  }
-  
-  const handleBookmarkVideo = async (videoId: string) => {
-    try {
-      await updateVideo({
-        id: videoId,
-        action: 'bookmark'
-      })
-      
-      toast({
-        title: "Video Bookmarked",
-        description: "Added to your saved videos.",
-      })
-      
-      refetch()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to bookmark video. Please try again.",
-        variant: "destructive"
-      })
-    }
-  }
-  
-  const handlePlayVideo = async (video: any) => {
-    try {
-      // Update view count
-      await updateVideo({
-        id: video.id,
-        action: 'view'
-      })
-      
-      setSelectedVideo(video)
-      
-      toast({
-        title: "Playing Video",
-        description: `Now playing: ${video.title}`,
-      })
-      
-      refetch()
-    } catch (error) {
-      console.error('Error updating view count:', error)
-      // Still allow video to play even if view count update fails
-      setSelectedVideo(video)
-    }
-  }
 
   return (
     <div className="flex h-screen bg-[#f0f4f9]">
@@ -580,62 +491,6 @@ export default function VideoLibraryPage() {
           </div>
         </div>
       </div>
-      
-      {/* Video Player Modal */}
-      {selectedVideo && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onClick={() => setSelectedVideo(null)}>
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold">{selectedVideo.title}</h2>
-              <Button variant="outline" onClick={() => setSelectedVideo(null)}>Close</Button>
-            </div>
-            <div className="aspect-video bg-gray-200 flex items-center justify-center mb-4">
-              <div className="text-center">
-                <Play className="w-16 h-16 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">Video player would be here</p>
-                <p className="text-sm text-gray-500">Duration: {selectedVideo.duration}</p>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <div className="flex items-center space-x-1">
-                  <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                  <span>{selectedVideo.rating}</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Eye className="w-4 h-4" />
-                  <span>{selectedVideo.views} views</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <ThumbsUp className="w-4 h-4" />
-                  <span>{selectedVideo.likes} likes</span>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleLikeVideo(selectedVideo.id)}
-                  disabled={updating}
-                >
-                  <ThumbsUp className="w-4 h-4 mr-1" />
-                  Like
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => handleBookmarkVideo(selectedVideo.id)}
-                  disabled={updating}
-                >
-                  <Bookmark className="w-4 h-4 mr-1" />
-                  Save
-                </Button>
-              </div>
-            </div>
-            <p className="text-gray-600 mt-4">{selectedVideo.description}</p>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

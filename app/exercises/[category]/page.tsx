@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { VideoModal } from "@/components/video-modal"
 import { exerciseCategories, getExercisesByCategory, type Exercise } from "@/lib/exercise-data"
 
 export default function ExerciseCategoryPage({ params }: { params: { category: string } }) {
@@ -16,8 +15,6 @@ export default function ExerciseCategoryPage({ params }: { params: { category: s
   const [exercises, setExercises] = useState<Exercise[]>([])
   const [filteredExercises, setFilteredExercises] = useState<Exercise[]>([])
   const [category, setCategory] = useState<any>(null)
-  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false)
-  const [selectedExercise, setSelectedExercise] = useState<Exercise | null>(null)
 
   useEffect(() => {
     const categoryData = exerciseCategories.find((c) => c.id === params.category)
@@ -55,18 +52,6 @@ export default function ExerciseCategoryPage({ params }: { params: { category: s
     ...exercise,
     completed: Math.random() > 0.7,
   }))
-
-  const handleWatchDemo = (exercise: Exercise) => {
-    if (exercise.videoUrl) {
-      setSelectedExercise(exercise)
-      setIsVideoModalOpen(true)
-    }
-  }
-
-  const handleCloseVideoModal = () => {
-    setIsVideoModalOpen(false)
-    setSelectedExercise(null)
-  }
 
   return (
     <DashboardLayout activeLink="exercises">
@@ -131,13 +116,7 @@ export default function ExerciseCategoryPage({ params }: { params: { category: s
                     </div>
                   </div>
                   <div className="flex items-center">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mr-2"
-                      onClick={() => handleWatchDemo(exercise)}
-                      disabled={!exercise.videoUrl}
-                    >
+                    <Button variant="outline" size="sm" className="mr-2">
                       <Play className="h-3 w-3 mr-1" /> Watch Demo
                     </Button>
                     <Link href={`/exercises/detail/${exercise.id}`}>
@@ -175,16 +154,6 @@ export default function ExerciseCategoryPage({ params }: { params: { category: s
           </div>
         </div>
       </div>
-      
-      {/* Video Modal */}
-      {selectedExercise && (
-        <VideoModal
-          isOpen={isVideoModalOpen}
-          onClose={handleCloseVideoModal}
-          videoUrl={selectedExercise.videoUrl || ""}
-          title={selectedExercise.name}
-        />
-      )}
     </DashboardLayout>
   )
 }

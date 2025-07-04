@@ -1,12 +1,10 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Home,
   Activity,
@@ -16,100 +14,46 @@ import {
   FileText,
   User,
   Settings,
-  Calendar,
-  Video,
-  Search,
-  Send,
-  Paperclip,
-  Phone,
-  MoreVertical,
-  Bell,
-  LogOut,
-  CheckCircle,
-  Clock,
   Mail,
+  Bell,
   Reply,
+  Calendar,
   BarChart,
   HelpCircle,
   ChevronDown,
+  LogOut,
 } from "lucide-react"
 import { useAuth } from "@/components/auth-provider"
-import { useMessages, useSendMessage } from "@/hooks/use-api"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "@/components/ui/use-toast"
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip"
 
 export default function MessagesPage() {
   const { user, logout } = useAuth()
-  const { toast } = useToast()
   const [emailNotifications, setEmailNotifications] = useState(true)
   const [pushNotifications, setPushNotifications] = useState(true)
   const [autoReplyOption, setAutoReplyOption] = useState("none")
-  const [selectedConversation, setSelectedConversation] = useState<any>(null)
-  const [newMessage, setNewMessage] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  
-  // Fetch messages using API
-  const { data: conversations, loading, error, refetch } = useMessages(user?.id)
-  const { sendMessage, loading: sending } = useSendMessage()
-
-  // Handle sending messages
-  const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedConversation) return
-    
-    try {
-      await sendMessage({
-        conversationId: selectedConversation.id,
-        content: newMessage,
-        senderId: user?.id,
-        receiverId: selectedConversation.participants.find((p: any) => p.id !== user?.id)?.id
-      })
-      
-      setNewMessage('')
-      toast({
-        title: "Message Sent",
-        description: "Your message has been delivered successfully.",
-      })
-      
-      refetch()
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive"
-      })
-    }
-  }
-  
-  // Filter conversations based on search
-  const filteredConversations = conversations?.filter((conv: any) => 
-    conv.participants.some((p: any) => 
-      p.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ) || conv.lastMessage?.content.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || []
-  
-  // Get current conversation messages
-  const currentMessages = selectedConversation?.messages || []
 
   // Mock data for recent conversations
   const recentConversations = [
     {
       id: 1,
-      name: "Dr. Sarah Miller",
+      name: "Dr. Budi Santoso",
       avatar: "/caring-doctor.png",
-      lastMessage: "Let me know if you have any questions about the exercises",
+      lastMessage: "Your next session is scheduled for Monday at 10:00 AM.",
       unread: true,
     },
     {
       id: 2,
-      name: "Dr. James Wilson",
+      name: "Dr. Lisa Tan",
       avatar: "/athletic-man-short-hair.png",
-      lastMessage: "Your progress looks good. We'll discuss more in our next session",
+      lastMessage: "Great progress on your last exercise routine!",
       unread: false,
     },
     {
       id: 3,
       name: "Admin Team",
       avatar: "/friendly-receptionist.png",
-      lastMessage: "Your insurance claim has been processed successfully",
+      lastMessage: "Your insurance claim has been approved.",
       unread: false,
     },
   ]
@@ -123,66 +67,111 @@ export default function MessagesPage() {
         </div>
 
         <nav className="flex flex-col items-center space-y-6 flex-1">
-          <Link
-            href="/dashboard"
-            className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
-          >
-            <Home className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/exercises"
-            className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
-          >
-            <Activity className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/appointments"
-            className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
-          >
-            <Users className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/messages"
-            className="w-10 h-10 rounded-xl bg-[#7e58f4] bg-opacity-20 flex items-center justify-center text-white relative"
-          >
-            <MessageSquare className="w-5 h-5" />
-            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-              1
-            </span>
-          </Link>
-          <Link
-            href="/progress"
-            className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
-          >
-            <BarChart2 className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/video-library"
-            className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
-          >
-            <FileText className="w-5 h-5" />
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/dashboard"
+                className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
+              >
+                <Home className="w-5 h-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Dashboard</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/exercises"
+                className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
+              >
+                <Activity className="w-5 h-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Exercises</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/appointments"
+                className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
+              >
+                <Users className="w-5 h-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Appointments</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/messages"
+                className="w-10 h-10 rounded-xl bg-[#7e58f4] bg-opacity-20 flex items-center justify-center text-white relative"
+              >
+                <MessageSquare className="w-5 h-5" />
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  1
+                </span>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Messages</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/progress"
+                className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
+              >
+                <BarChart2 className="w-5 h-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Progress</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/video-library"
+                className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
+              >
+                <FileText className="w-5 h-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Video Library</TooltipContent>
+          </Tooltip>
         </nav>
 
         <div className="mt-auto flex flex-col items-center space-y-6">
-          <Link
-            href="/profile"
-            className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
-          >
-            <User className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/settings"
-            className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
-          >
-            <Settings className="w-5 h-5" />
-          </Link>
-          <button
-            onClick={logout}
-            className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/profile"
+                className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Profile</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/settings"
+                className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
+              >
+                <Settings className="w-5 h-5" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>Settings</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={logout}
+                className="w-10 h-10 rounded-xl hover:bg-white/10 flex items-center justify-center text-white"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Logout</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -234,6 +223,7 @@ export default function MessagesPage() {
                 <div
                   key={conversation.id}
                   className="bg-white rounded-lg shadow-sm p-4 flex items-center justify-between hover:bg-gray-50 cursor-pointer"
+                  onClick={() => toast({ title: `Conversation with ${conversation.name}`, description: `Opening chat with ${conversation.name}.` })}
                 >
                   <div className="flex items-center">
                     <div className="w-10 h-10 rounded-full overflow-hidden mr-4">

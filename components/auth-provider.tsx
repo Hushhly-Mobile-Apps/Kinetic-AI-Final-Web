@@ -3,8 +3,6 @@
 import type React from "react"
 import { createContext, useContext, useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import supabase from "@/lib/supabase-client"
-import { toast } from "sonner"
 
 // Define user types
 export type UserRole = "patient" | "provider" | "admin"
@@ -17,15 +15,67 @@ export interface User {
   avatar?: string
 }
 
+// Mock users for demo purposes
+const MOCK_USERS = [
+  {
+    id: "1",
+    email: "ayu.wulandari@kinetic.co.id",
+    password: "password123",
+    name: "Ayu Wulandari",
+    role: "patient" as UserRole,
+    avatar: "/smiling-brown-haired-woman.png"
+  },
+  {
+    id: "2",
+    email: "dr.budi.santoso@kinetic.co.id",
+    password: "doctor123",
+    name: "Dr. Budi Santoso",
+    role: "provider" as UserRole,
+    avatar: "/caring-doctor.png"
+  },
+  {
+    id: "3",
+    email: "admin@kinetic.co.id",
+    password: "admin123",
+    name: "Admin Kinetic",
+    role: "admin" as UserRole,
+  },
+  {
+    id: "4",
+    email: "agus.pratama@kinetic.co.id",
+    password: "password123",
+    name: "Agus Pratama",
+    role: "patient" as UserRole,
+    avatar: "/athletic-man-short-hair.png"
+  },
+  {
+    id: "5",
+    email: "melati.sari@kinetic.co.id",
+    password: "password123",
+    name: "Melati Sari",
+    role: "patient" as UserRole,
+  },
+  {
+    id: "6",
+    email: "dr.lisa.tan@kinetic.co.id",
+    password: "doctor123",
+    name: "Dr. Lisa Tan",
+    role: "provider" as UserRole,
+  },
+  {
+    id: "7",
+    email: "dr.wijaya@kinetic.co.id",
+    password: "provider",
+    name: "Dr. Wijaya Saputra",
+    role: "provider" as UserRole,
+    avatar: "/older-man-glasses.png"
+  }
+]
+
 interface AuthContextType {
   user: User | null
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
-  register: (email: string, password: string, name: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>
-  loginWithMagicLink: (email: string) => Promise<{ success: boolean; error?: string }>
-  logout: () => Promise<void>
-  resetPassword: (email: string) => Promise<{ success: boolean; error?: string }>
-  updatePassword: (password: string) => Promise<{ success: boolean; error?: string }>
-  updateProfile: (profile: Partial<User>) => Promise<{ success: boolean; error?: string }>
+  login: (email: string, password: string, portalType?: 'patient' | 'provider') => Promise<{ success: boolean; error?: string }>
+  logout: () => void
   isLoading: boolean
 }
 
@@ -36,302 +86,83 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
-  // Initialize user session
+  // Check for existing session on mount
   useEffect(() => {
-    const initializeAuth = async () => {
+    const storedUser = localStorage.getItem("kineticUser")
+    if (storedUser) {
       try {
-        // Get initial session
-        const { data: { session } } = await supabase.auth.getSession()
-        
-        if (session) {
-          const { data: userProfile } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-            
-          if (userProfile) {
-            setUser({
-              id: session.user.id,
-              email: session.user.email || '',
-              name: userProfile.name || session.user.email?.split('@')[0] || 'User',
-              role: userProfile.role || 'patient',
-              avatar: userProfile.avatar_url
-            })
-          } else {
-            // Create profile if doesn't exist
-            const defaultUserProfile = {
-              id: session.user.id,
-              name: session.user.email?.split('@')[0] || 'User',
-              email: session.user.email || '',
-              role: 'patient',
-              created_at: new Date().toISOString(),
-            }
-            
-            await supabase.from('profiles').insert([defaultUserProfile])
-            setUser(defaultUserProfile)
-          }
-        }
+        setUser(JSON.parse(storedUser))
       } catch (error) {
-        console.error("Authentication initialization error:", error)
-      } finally {
-        setIsLoading(false)
+        console.error("Failed to parse stored user:", error)
+        localStorage.removeItem("kineticUser")
       }
     }
-    
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session) {
-        // Get or create user profile
-        const { data: userProfile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-          
-        if (userProfile) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: userProfile.name || session.user.email?.split('@')[0] || 'User',
-            role: userProfile.role || 'patient',
-            avatar: userProfile.avatar_url
-          })
-        } else {
-          // Create profile if doesn't exist
-          const newProfile = {
-            id: session.user.id,
-            name: session.user.email?.split('@')[0] || 'User',
-            email: session.user.email || '',
-            role: 'patient',
-            created_at: new Date().toISOString(),
-          }
-          
-          await supabase.from('profiles').insert([newProfile])
-          setUser(newProfile)
-        }
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null)
-      }
-    })
-    
-    initializeAuth()
-    
-    return () => {
-      subscription.unsubscribe()
-    }
+    setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+  const login = async (email: string, password: string, portalType?: 'patient' | 'provider'): Promise<{ success: boolean; error?: string }> => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      })
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 500))
       
-      if (error) {
-        return { success: false, error: error.message }
+      // First, try to find existing user
+      const foundUser = MOCK_USERS.find((u) => u.email.toLowerCase() === email.toLowerCase())
+      
+      if (foundUser) {
+        // Use existing user data
+        const { password: _, ...userWithoutPassword } = foundUser
+        setUser(userWithoutPassword)
+        localStorage.setItem("kineticUser", JSON.stringify(userWithoutPassword))
+        document.cookie = `kineticUser=${JSON.stringify(userWithoutPassword)}; path=/; max-age=86400`
+        return { success: true }
       }
       
-      if (data.user) {
-        // Get user profile
-        const { data: userProfile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', data.user.id)
-          .single()
-          
-        if (userProfile) {
-          setUser({
-            id: data.user.id,
-            email: data.user.email || '',
-            name: userProfile.name || data.user.email?.split('@')[0] || 'User',
-            role: userProfile.role || 'patient',
-            avatar: userProfile.avatar_url
-          })
+      // If no existing user found, create a new user based on portal type
+      if (email && password) {
+        const isProvider = portalType === 'provider' || 
+                          email.toLowerCase().includes('provider') || 
+                          email.toLowerCase().includes('doctor') || 
+                          email.toLowerCase().includes('clinic') ||
+                          email.toLowerCase().includes('dr.') ||
+                          email.toLowerCase().includes('physio') ||
+                          email.toLowerCase().includes('therapist')
+        
+        const userName = email.split('@')[0]
+          .split('.')
+          .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(' ')
+        
+        const newUser: User = {
+          id: Date.now().toString(),
+          email: email,
+          name: userName,
+          role: isProvider ? 'provider' : 'patient',
+          avatar: isProvider ? '/caring-doctor.png' : '/smiling-brown-haired-woman.png'
         }
+        
+        setUser(newUser)
+        localStorage.setItem("kineticUser", JSON.stringify(newUser))
+        document.cookie = `kineticUser=${JSON.stringify(newUser)}; path=/; max-age=86400`
         
         return { success: true }
       }
       
-      return { success: false, error: "Unable to login" }
+      return { success: false, error: "Please enter valid credentials" }
     } catch (error) {
       console.error("Login error:", error)
-      return { success: false, error: "Authentication service unavailable" }
-    }
-  }
-  
-  const register = async (
-    email: string, 
-    password: string, 
-    name: string,
-    role: UserRole = 'patient'
-  ): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            name,
-            role
-          }
-        }
-      })
-      
-      if (error) {
-        return { success: false, error: error.message }
-      }
-      
-      if (data.user) {
-        // Create user profile
-        const newProfile = {
-          id: data.user.id,
-          name,
-          email: data.user.email || '',
-          role,
-          created_at: new Date().toISOString(),
-        }
-        
-        const { error: profileError } = await supabase.from('profiles').insert([newProfile])
-        
-        if (profileError) {
-          console.error("Error creating profile:", profileError)
-        }
-        
-        toast.success("Registration successful! Please check your email to confirm your account.")
-        return { success: true }
-      }
-      
-      return { success: false, error: "Unable to register" }
-    } catch (error) {
-      console.error("Registration error:", error)
-      return { success: false, error: "Registration service unavailable" }
-    }
-  }
-  
-  const loginWithMagicLink = async (email: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
-        }
-      })
-      
-      if (error) {
-        return { success: false, error: error.message }
-      }
-      
-      toast.success("Magic link sent! Please check your email.")
-      return { success: true }
-    } catch (error) {
-      console.error("Magic link error:", error)
-      return { success: false, error: "Authentication service unavailable" }
+      return { success: false, error: "An error occurred during login" }
     }
   }
 
-  const logout = async () => {
-    try {
-      await supabase.auth.signOut()
-      setUser(null)
-      router.push("/")
-    } catch (error) {
-      console.error("Logout error:", error)
-    }
-  }
-  
-  const resetPassword = async (email: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      })
-      
-      if (error) {
-        return { success: false, error: error.message }
-      }
-      
-      toast.success("Password reset instructions sent to your email")
-      return { success: true }
-    } catch (error) {
-      console.error("Password reset error:", error)
-      return { success: false, error: "Service unavailable" }
-    }
-  }
-  
-  const updatePassword = async (password: string): Promise<{ success: boolean; error?: string }> => {
-    try {
-      const { error } = await supabase.auth.updateUser({
-        password,
-      })
-      
-      if (error) {
-        return { success: false, error: error.message }
-      }
-      
-      toast.success("Password updated successfully")
-      return { success: true }
-    } catch (error) {
-      console.error("Update password error:", error)
-      return { success: false, error: "Service unavailable" }
-    }
-  }
-  
-  const updateProfile = async (profile: Partial<User>): Promise<{ success: boolean; error?: string }> => {
-    try {
-      if (!user) {
-        return { success: false, error: "Not authenticated" }
-      }
-      
-      // Update auth metadata if name is provided
-      if (profile.name) {
-        await supabase.auth.updateUser({
-          data: { name: profile.name }
-        })
-      }
-      
-      // Update profile in profiles table
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: profile.name,
-          avatar_url: profile.avatar,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id)
-      
-      if (error) {
-        return { success: false, error: error.message }
-      }
-      
-      // Update local user state
-      setUser({ ...user, ...profile })
-      
-      toast.success("Profile updated successfully")
-      return { success: true }
-    } catch (error) {
-      console.error("Update profile error:", error)
-      return { success: false, error: "Service unavailable" }
-    }
+  const logout = () => {
+    setUser(null)
+    localStorage.removeItem("kineticUser")
+    // Clear the cookie by setting an expired date
+    document.cookie = 'kineticUser=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    window.location.href = '/login'
   }
 
-  return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        login, 
-        register,
-        loginWithMagicLink,
-        logout, 
-        resetPassword,
-        updatePassword,
-        updateProfile,
-        isLoading 
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

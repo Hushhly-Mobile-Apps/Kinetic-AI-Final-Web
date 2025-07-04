@@ -205,7 +205,7 @@ export default function UploadProgressPage() {
                 <Brain className="h-5 w-5 text-gray-600" />
               </div>
               <div>
-                <h3 className="font-medium">Movement Analysis</h3>
+                <h3 className="font-medium">AI Analysis</h3>
                 <p className="text-sm text-gray-500">Analyzing your exercise form and technique</p>
               </div>
             </div>

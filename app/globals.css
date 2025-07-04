@@ -73,56 +73,8 @@
   body {
     @apply bg-background text-black;
   }
-  p, h1, h2, h3, h4, h5, h6, span, div, a, input, textarea, select, label {
-    @apply text-black !important;
-  }
-  
-  /* Button styling */
-  button {
-    @apply text-black !important;
-  }
-  
-  /* Dark buttons get white text */
-  button.bg-black,
-  button.bg-gray-900,
-  button.bg-slate-900,
-  button.bg-zinc-900,
-  button.bg-neutral-900,
-  button.bg-stone-900,
-  button[class*="bg-blue-9"],
-  button[class*="bg-indigo-9"],
-  button[class*="bg-purple-9"],
-  button[class*="bg-pink-9"],
-  button[class*="bg-red-9"],
-  button[class*="bg-orange-9"],
-  button[class*="bg-amber-9"],
-  button[class*="bg-yellow-9"],
-  button[class*="bg-lime-9"],
-  button[class*="bg-green-9"],
-  button[class*="bg-emerald-9"],
-  button[class*="bg-teal-9"],
-  button[class*="bg-cyan-9"],
-  button[class*="bg-sky-9"],
-  .bg-primary button,
-  .bg-secondary button {
-    color: white !important;
-  }
-  
-  /* Ensure all text elements are black by default */
-  .text-white {
-    color: black !important;
-  }
-  
-  /* Exception for dark backgrounds */
-  .bg-black .text-white,
-  .bg-gray-900 .text-white,
-  .bg-slate-900 .text-white,
-  .bg-zinc-900 .text-white,
-  .bg-neutral-900 .text-white,
-  .bg-stone-900 .text-white,
-  .bg-primary .text-white,
-  .bg-secondary .text-white {
-    color: white !important;
+  p, h1, h2, h3, h4, h5, h6, span, div, a, button, input, textarea, select, label {
+    @apply text-black;
   }
 }
 

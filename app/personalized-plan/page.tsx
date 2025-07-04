@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import Image from "next/image"
@@ -78,7 +80,7 @@ export default function PersonalizedPlanPage() {
                         </li>
                         <li className="flex items-start">
                           <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />
-                          <span className="text-sm">Automated movement analysis for optimal form</span>
+                          <span className="text-sm">AI-powered movement analysis for optimal form</span>
                         </li>
                         <li className="flex items-start">
                           <CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0" />

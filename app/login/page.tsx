@@ -1,6 +1,9 @@
+"use client"
+
 import Image from "next/image"
 import Link from "next/link"
 import { User, Shield } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function Login() {
   return (
@@ -83,6 +86,51 @@ export default function Login() {
         <Link href="/" className="text-white hover:underline text-sm">
           Return to Home
         </Link>
+      </div>
+
+      {/* Quick Bypass Buttons */}
+      <div className="mt-6 text-center">
+        <p className="text-white text-sm mb-3">Quick Access (Bypass Login):</p>
+        <div className="flex gap-3 justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+            onClick={() => {
+              const tempUser = {
+                id: "temp-patient",
+                email: "demo@patient.com",
+                name: "Demo Patient",
+                role: "patient",
+                avatar: "/smiling-brown-haired-woman.png"
+              }
+              localStorage.setItem("kineticUser", JSON.stringify(tempUser))
+              document.cookie = `kineticUser=${JSON.stringify(tempUser)}; path=/; max-age=86400`
+              window.location.href = '/dashboard/patient'
+            }}
+          >
+            🚀 Patient Dashboard
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-yellow-50 border-yellow-300 text-yellow-700 hover:bg-yellow-100"
+            onClick={() => {
+              const tempUser = {
+                id: "temp-provider",
+                email: "demo@provider.com",
+                name: "Dr. Demo Provider",
+                role: "provider",
+                avatar: "/caring-doctor.png"
+              }
+              localStorage.setItem("kineticUser", JSON.stringify(tempUser))
+              document.cookie = `kineticUser=${JSON.stringify(tempUser)}; path=/; max-age=86400`
+              window.location.href = '/dashboard/provider'
+            }}
+          >
+            🚀 Provider Dashboard
+          </Button>
+        </div>
       </div>
     </div>
   )
